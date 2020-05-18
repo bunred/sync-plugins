@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/bunred/sync-plugins.svg?branch=master)](https://travis-ci.org/bunred/sync-plugins) [![Coverage Status](https://coveralls.io/repos/github/bunred/sync-plugins/badge.svg?branch=master)](https://coveralls.io/github/bunred/sync-plugins?branch=master)
+
 #### How to use
 One-click to sync(install/update) the plugins, you can use git repository to store the plugins' information.
 
