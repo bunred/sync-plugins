@@ -1,0 +1,29 @@
+[
+  {
+    "enable": true,
+    "private": true,
+    "custom-request-options": {
+      "url": "https://raw.githubusercontent.com/bunred/bunadmin-plugins/master/navigation/blog/bunred/bunadmin-plugin-strapi-blog.json"
+    },
+    "name": "bunadmin user authentication",
+    "version": "1.0.0-alpha.1",
+    "description": "authentication, user query",
+    "license": "Apache-2.0",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/bunred/bunadmin-plugin-buncms-user.git"
+    },
+    "keywords": ["user", "auth"],
+    "homepage": "https://github.com/bunred/bunadmin-plugin-buncms-user",
+    "plugin-id": "bunadmin-plugin-buncms-user",
+    "plugin-navigation": "authentication",
+    "plugin-author": "bunred",
+    "plugin-folder": "buncms-user",
+    "plugin-version": "0.0.1",
+    "plugin-bunadmin-version": "1.0.1",
+    "plugin-download": {
+      "type": "git",
+      "url": "https://github.com/bunred/bunadmin-plugin-buncms-user/archive/1.0.0-alpha.1.zip"
+    }
+  }
+]
