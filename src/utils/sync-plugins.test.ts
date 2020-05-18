@@ -2,7 +2,7 @@ import syncPlugins from "./sync-plugins";
 
 test("default params", async () => {
   expect(await syncPlugins({ pluginsPath: ".tmp/plugins" })).toEqual([
-    "plugin no updates",
+    "plugin updated",
     "plugin not exists",
   ]);
 }, 15000);
