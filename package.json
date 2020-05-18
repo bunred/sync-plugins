@@ -12,7 +12,7 @@
   "scripts": {
     "demo": "tsc && node dist/default-demo.js",
     "build": "tsc",
-    "test": "tsc && jest"
+    "test": "tsc && jest --coverage"
   },
   "repository": {
     "type": "git",
