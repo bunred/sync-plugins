@@ -1,0 +1,28 @@
+[
+  {
+    "enable": true,
+    "custom-request-options": {
+      "url": "https://raw.githubusercontent.com/bunred/bunadmin-plugins/master/navigation/blog/bunred/bunadmin-plugin-strapi-blog.json"
+    },
+    "name": "bunadmin-plugin-strapi-blog",
+    "version": "1.0.0-alpha.1",
+    "description": "blog example for Strapi",
+    "license": "Apache-2.0",
+    "repository": {
+      "type": "git",
+      "url": "https://github.com/bunred/bunadmin-plugin-strapi-blog.git"
+    },
+    "keywords": ["blog", "strapi"],
+    "homepage": "https://github.com/bunred/bunadmin-plugin-strapi-blog",
+    "plugin-id": "bunadmin-plugin-strapi-blog",
+    "plugin-navigation": "blog",
+    "plugin-author": "bunred",
+    "plugin-folder": "bunadmin-blog",
+    "plugin-version": "1.0.1",
+    "plugin-bunadmin-version": "1.0.1",
+    "plugin-download": {
+      "type": "git",
+      "url": "https://github.com/bunred/bunadmin-plugin-strapi-blog/archive/1.0.1.zip"
+    }
+  }
+]
