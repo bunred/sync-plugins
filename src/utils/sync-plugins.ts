@@ -1,31 +1,19 @@
-import downloadAndUnzip from "./download-unzip";
 import { SyncPluginsProps } from "../../types";
+import rmDir from "./rm-dir";
 
 export default async function syncPlugins({
-  savePath,
   pluginsPath,
-  pluginsPrefixUrl,
-  pluginsInfoArr,
+  pluginsInfoArr = [],
 }: SyncPluginsProps) {
   const chalk = require("chalk");
-  const request = require("request-promise-native");
   const compareVersions = require("compare-versions");
   const fs = require("fs");
-  const prettier = require("prettier");
 
   const path = require("path");
-
-  // local plugin-info.json file name
-  const pluginsInfo = "plugins-info.json";
-  if (!savePath) savePath = path.resolve(__dirname, pluginsInfo);
+  const fse = require("fs-extra");
 
   // plugins folder path
   if (!pluginsPath) pluginsPath = path.resolve(__dirname, "../../plugins");
-
-  // plugins library prefix url
-  if (!pluginsPrefixUrl)
-    pluginsPrefixUrl =
-      "https://raw.githubusercontent.com/bunred/bunadmin-plugins/master/navigation";
 
   // local plugins-info.json
   if (!pluginsInfoArr)
@@ -34,7 +22,6 @@ export default async function syncPlugins({
   // Checking plugins START
   console.log(chalk.white("- Checking bunadmin plugins updates..."));
 
-  const newJsonInfo: any[] = [];
   const syncMSGs: any[] = [];
   // read and handle plugins-info.json
   let keepOldNum = 0;
@@ -45,7 +32,6 @@ export default async function syncPlugins({
 
       const isEnabled = p["enable"];
       if (!isEnabled) {
-        newJsonInfo[i] = p; // keep original plugin data
         keepOldNum && keepOldNum++;
         console.log(
           chalk.white(`  · Plugin is not enabled: ${p["plugin-id"]}`)
@@ -54,118 +40,83 @@ export default async function syncPlugins({
         continue;
       }
 
-      const currentVersion = p["plugin-version"];
-      const urlOL =
-        pluginsPrefixUrl +
-        `/${p["plugin-navigation"]}/${p["plugin-author"]}/${p["plugin-id"]}.json`;
-      let reqOptions = {
-        url: urlOL,
-      };
+      const packagePath = path.resolve(`node_modules/${p["plugin-id"]}`);
 
-      const isCustomRequest =
-        p["custom-request-options"] && p["custom-request-options"]["url"];
-      if (isCustomRequest) {
-        reqOptions = p["custom-request-options"];
+      const packageExists = await fs.existsSync(packagePath);
+      if (!packageExists) {
+        keepOldNum && keepOldNum++;
+        console.log(
+          chalk.white(`  · Package is not exists: ${p["plugin-id"]}`)
+        );
+        syncMSGs[i] = "package not exists";
+        continue;
       }
 
-      let data;
+      const localFolder = path.resolve(`${pluginsPath}/${p["plugin-folder"]}`);
+      const existedFolder = await fs.existsSync(localFolder);
+
+      let currentVersion = "0";
+
       try {
-        data = await request(reqOptions);
+        const pluginData = require(`${localFolder}/package.json`);
+        if (pluginData && pluginData.version) {
+          currentVersion = pluginData.version;
+        }
       } catch (e) {
-        console.warn(`  · Remote plugin does not exist: ${p["plugin-id"]}`);
-        newJsonInfo[i] = p; // keep original plugin data
+        // console.log(`${localFolder}/package.json`, e);
+      }
+
+      let newVersion = "0";
+
+      try {
+        const pkgData = require(`${packagePath}/package.json`);
+        if (pkgData && pkgData.version) {
+          newVersion = pkgData.version;
+        }
+      } catch (e) {
+        console.warn(`  · Local plugin does not exist: ${p["plugin-id"]}`);
         syncMSGs[i] = "plugin not exists";
         continue;
       }
 
-      const jsonOL = JSON.parse(data);
-
-      if (
-        !jsonOL ||
-        !jsonOL["plugin-version"] ||
-        !jsonOL["plugin-download"] ||
-        !jsonOL["plugin-download"]["url"] ||
-        !jsonOL["plugin-folder"]
-      ) {
-        console.error(
-          `  · Missing Params: please check the plugin '${p["plugin-id"]}'`
-        );
-        newJsonInfo[i] = "missing params";
-        continue;
-      }
-
-      const localFolder = p["plugin-folder"];
-      const existedFolder = await fs.existsSync(
-        `${pluginsPath}/${localFolder}`
-      );
-
-      const newVersion = jsonOL["plugin-version"];
       // No plugin updates available
       if (existedFolder && compareVersions(newVersion, currentVersion) <= 0) {
         console.log(
           chalk.white(`  · No plugin updates available: ${p["plugin-id"]}`)
         );
-        newJsonInfo[i] = p; // keep original plugin data
         keepOldNum++;
 
         syncMSGs[i] = "plugin no updates";
         continue;
       } // if compareVersions end
 
-      const downloadUrl = jsonOL["plugin-download"]["url"];
-      const pluginFolder = jsonOL["plugin-folder"];
+      // remove existed plugin
+      await rmDir(localFolder);
 
-      const downloadOpts = {
-        ...reqOptions,
-        url: downloadUrl,
-        encoding: null,
-      };
-
-      // download to update plugin
-      const duRes = await downloadAndUnzip({
-        reqOptions: downloadOpts,
-        folderName: pluginFolder,
-        pluginsPath,
-      }); // downloadAnUnzip end
-
-      if (duRes && duRes === "plugin download error") {
-        newJsonInfo[i] = p; // keep original plugin data
-        keepOldNum++;
-        syncMSGs[i] = "plugin download error";
-      } else {
+      // copy plugin from node_modules to plugins
+      try {
+        await fse.copy(`${packagePath}/dist`, localFolder);
         if (existedFolder) {
           console.log(
             chalk.green(`  · Plugin updated : ${p["plugin-id"]}@${newVersion}`)
           );
+          syncMSGs[i] = "plugin updated";
         } else {
           console.log(
             chalk.green(
               `  · Plugin installed : ${p["plugin-id"]}@${newVersion}`
             )
           );
+          syncMSGs[i] = "plugin installed";
         }
-        // update plugin info, keep local original custom-request-options
-        if (isCustomRequest) {
-          // remove online custom-request-options, such as "Warning!!!"
-          delete jsonOL["custom-request-options"];
-
-          newJsonInfo[i] = {
-            enable: true,
-            "custom-request-options": reqOptions,
-            ...jsonOL,
-          };
-          syncMSGs[i] = "plugin updated with custom-request-options";
-        } else {
-          newJsonInfo[i] = { enable: true, ...jsonOL };
-          syncMSGs[i] = "plugin updated";
-        }
+      } catch (err) {
+        console.error(err);
       }
     } // pluginsInfoArr for end
   }
 
   await updatePlugins();
 
-  // console.log(newJsonInfo)
   // return
 
   // all plugins' info same to local origin, skip updating plugin-infos.json
@@ -175,12 +126,8 @@ export default async function syncPlugins({
   }
 
   // write new plugins-info.json
-  const preJson = prettier.format(JSON.stringify(newJsonInfo), {
-    parser: "json",
-  });
 
   try {
-    await fs.writeFileSync(savePath, preJson, "utf8");
     // Checking plugins END
     console.log(chalk.white("  · Updated plugins-info.json"));
     console.log(chalk.blue("- Checking bunadmin plugins completed."));

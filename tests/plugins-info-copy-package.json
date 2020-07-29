@@ -5,7 +5,7 @@
     "plugin-folder": "buncms-user"
   },
   {
-    "enable": false,
+    "enable": true,
     "plugin-id": "bunadmin-plugin-package-not-exists",
     "plugin-folder": "buncms-user"
   }

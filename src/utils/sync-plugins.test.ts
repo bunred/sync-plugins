@@ -1,11 +1,13 @@
 import syncPlugins from "./sync-plugins";
 
-test("default params", async () => {
-  expect(await syncPlugins({ pluginsPath: ".tmp/plugins" })).toEqual([
-    "plugin updated",
-    "plugin not exists",
-  ]);
-}, 15000);
+test("copy package", async () => {
+  expect(
+    await syncPlugins({
+      pluginsInfoArr: require("../../tests/plugins-info-copy-package.json"),
+      pluginsPath: ".tmp/plugins",
+    })
+  ).toEqual(["plugin installed", "package not exists"]);
+});
 
 test("disabled plugin", async () => {
   expect(
@@ -14,22 +16,24 @@ test("disabled plugin", async () => {
       pluginsPath: ".tmp/plugins",
     })
   ).toEqual(["plugin no updates", "plugin not enabled"]);
-});
+}, 1000);
 
-test("to online", async () => {
+test("updated to new", async () => {
+  await updateVersion();
   expect(
     await syncPlugins({
-      pluginsInfoArr: require("../../tests/plugins-info-to-online.json"),
+      pluginsInfoArr: require("../../tests/plugins-info-to-new.json"),
       pluginsPath: ".tmp/plugins",
     })
   ).toEqual(["plugin updated"]);
-}, 15000);
+}, 2000);
 
-test("to online custom-options", async () => {
-  expect(
-    await syncPlugins({
-      pluginsInfoArr: require("../../tests/plugins-info-to-online-custom-options.json"),
-      pluginsPath: ".tmp/plugins",
-    })
-  ).toEqual(["plugin updated with custom-request-options"]);
-}, 15000);
+async function updateVersion() {
+  const fs = require("fs");
+  const fileName = ".tmp/plugins/buncms-user/package.json";
+  const data = require(`../../${fileName}`);
+
+  data.version = "0";
+
+  await fs.writeFileSync(fileName, JSON.stringify(data));
+}

@@ -1,6 +1,6 @@
 {
   "name": "@bunred/sync-plugins",
-  "version": "1.0.4",
+  "version": "1.1.1",
   "license": "Apache-2.0",
   "description": "one-click to sync(install/update) the plugins, you can use git repository to store the plugins' information.",
   "main": "dist/index.js",
@@ -24,8 +24,10 @@
   "author": "BunRed Team",
   "dependencies": {
     "adm-zip": "^0.4.14",
+    "bunadmin-plugin-auth": "^1.0.0-alpha.2",
     "chalk": "^4.0.0",
     "compare-versions": "^3.6.0",
+    "fs-extra": "^9.0.1",
     "request": "^2.88.2",
     "request-promise-native": "^1.0.8"
   },

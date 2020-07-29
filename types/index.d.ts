@@ -4,7 +4,11 @@ export interface SyncPluginsProps {
   savePath?: PathLike | number;
   pluginsPath?: string;
   pluginsPrefixUrl?: string;
-  pluginsInfoArr?: any;
+  pluginsInfoArr?: {
+    enable: boolean;
+    "plugin-id": string;
+    "plugin-folder": string;
+  }[];
 }
 
 export type SyncPlugins = (props: SyncPluginsProps) => void;
